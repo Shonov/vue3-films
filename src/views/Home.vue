@@ -4,15 +4,16 @@
     h1.home__title Каталог фильмов
     +b.search
       +e.I.icon.fa.fa-search
-      +e.INPUT(type="text" v-model="search" placeholder="Введите  название").field
+      +e.INPUT(type="text" v-model="search" @input="filteredFilms" placeholder="Введите  название").field
 
     .home__films
-      +b(v-for="item in films").film
+      +b(v-if="!filmsLoaded").I.loader.fa.fa-spinner.fa-spin
+      +b(v-else="" v-for="item in films").film
         +e.IMG(src="http://placehold.it/260x85?text=Placeholder").poster
         +e.description
           +e.name {{ item.title }}
           +e.producer {{ item.producer }}
-    .more-films(@click="nextPage") Показать еще
+    .more-films(v-if="!hideButton && filmsLoaded" @click="nextPage") Показать еще
 </template>
 
 <script>
@@ -23,9 +24,11 @@
     data: function () {
       return {
         size: 3,
-        page: 0,
-        filmsLoading: false,
+        page: 1,
+        hideButton: false,
+        filmsLoaded: false,
         films: false,
+        search: ''
       };
     },
     computed: {
@@ -35,14 +38,31 @@
     },
     async created() {
       await this.$store.dispatch('films/getAllFilms');
-      this.films = this.filmsData.slice(0, this.size);
+      this.films = this.basicCountFilms();
+      this.filmsLoaded = true;
     },
-      mounted() {},
+    mounted() {},
     methods: {
+      basicCountFilms() {
+        const end = this.page * this.size;
+        return this.filmsData.slice(0, end);
+      },
       nextPage() {
         this.page++;
-        const end = this.page * this.size + this.size;
-        this.films = this.filmsData.slice(0, end);
+        this.films = this.basicCountFilms();
+
+        if ((this.page * this.size) >= this.filmsData.length) {
+          this.hideButton = true;
+        }
+      },
+      filteredFilms() {
+        this.films = this.filmsData.filter((e) => {
+          return e.title.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
+        });
+
+        if (this.search === '') {
+          this.films = this.basicCountFilms();
+        }
       },
     },
   }

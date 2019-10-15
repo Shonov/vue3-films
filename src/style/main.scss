@@ -21,6 +21,7 @@ body {
   }
 
   &__films {
+    position: relative;
     display: flex;
     justify-content: space-between;
     flex-wrap: wrap;
@@ -113,6 +114,19 @@ body {
   max-width: 190px;
   margin: 9px auto auto;
   cursor: pointer;
+}
+
+.loader {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  margin: 50px auto;
+  animation: fa-spin 2s infinite linear;
+  font-size: 40px;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 @media (max-width: 767px) {
