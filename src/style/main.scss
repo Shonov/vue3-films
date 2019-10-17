@@ -23,7 +23,7 @@ body {
   &__films {
     position: relative;
     display: flex;
-    justify-content: space-between;
+    align-items: flex-start;
     flex-wrap: wrap;
     margin-top: 22px;
   }
@@ -65,6 +65,11 @@ body {
   position: relative;
   margin-bottom: 22px;
 
+  &:nth-child(3n+2) {
+    margin-left: 2%;
+    margin-right: 2%;
+  }
+
   &::before {
     position: absolute;
     content: '';
@@ -77,6 +82,7 @@ body {
 
   &__poster {
     border-radius: 4px 4px 0 0;
+    width: 100%;
   }
 
   &__description {
@@ -129,9 +135,19 @@ body {
   bottom: 0;
 }
 
+.failed-search {
+  text-align: center;
+  margin-top: 50px;
+}
+
 @media (max-width: 767px) {
   .film {
     flex-basis: 100%;
     width: 100%;
+
+    &:nth-child(3n+2) {
+      margin-left: 0;
+      margin-right: 0;
+    }
   }
 }

@@ -1,60 +1,60 @@
-import axios from "axios";
-
 export default {
   namespaced: true,
 
   state: {
-    all: false,
-    page: false,
+    all: [],
     isLoaded: false,
     error: false,
   },
   getters: {
-    filmsData: state => {
-      return state.all;
-    },
-    page: state => state.page,
+    allFilms: state => state.all,
+    isLoaded: state => state.isLoaded,
   },
   mutations: {
-    FILMS_UPDATED: (state, response) => {
-      state.all = response;
+    FILMS_UPDATED: (state, payload) => {
+      state.all.push(payload);
     },
-    IS_LOADED: (state, response) => {
-      state.isLoaded = response;
+    IS_LOADED_UPDATED: (state, payload) => {
+      state.isLoaded = payload;
+    },
+    STATE_RESET: (state) => {
+      state.all = [];
+      state.isLoaded = false;
     },
     SET_ERROR: (state, error) => {
       state.error = error;
     },
   },
   actions: {
-    getAllFilms: async ({ commit, rootGetters, dispatch }) => {
-      await rootGetters.HTTP.get('https://swapi.co/api/films/').then((response) => {
-        commit('FILMS_UPDATED', response.data.results);
-        // await dispatch('searchPosters');
+    getAllFilms: ({ commit, rootGetters, dispatch }) => {
+      commit('STATE_RESET');
+      rootGetters.HTTP.get('https://swapi.co/api/films/').then(async (response) => {
+        await dispatch('updateFilmPoster', response.data.results);
       }, (err) => {
         commit('SET_ERROR', err);
       });
     },
-    searchPosters: ({ commit, state }) => {
-      // let filmsModified = state.all;
-      let filmsModified = state.all.map(async (e) => {
-        await axios.get('https://pixabay.com/api/', {
-         params: {
-           key: '13946176-5efe0deaabd8f5d7a020a0ba7',
-           q: e.title
-         }
-        }).then(async (response) => {
-          e.poster = !response.data.totalHits ? 'http://placehold.it/260x85?text=Placeholder' : response.data.hits[0].webformatURL;
-          console.log(e);
+    updateFilmPoster: async ({ commit, rootGetters }, films) => {
+      let defaultImage = 'http://placehold.it/260x85?text=Placeholder';
+
+      const asyncGetImg = (film) => {
+        rootGetters.HTTP.get('https://pixabay.com/api/', {
+          params: {
+            key: process.env.VUE_APP_PIXABAY_KEY,
+            q: film.title
+          }
+        }).then((response) => {
+          film.poster = !response.data.totalHits ? defaultImage : response.data.hits[0].webformatURL;
+          commit('FILMS_UPDATED', film);
         }, (err) => {
           commit('SET_ERROR', err);
         });
 
-        return e;
-      });
+        return film;
+      };
 
-      console.log(filmsModified, state);
-      commit('FILMS_UPDATED', filmsModified);
+      films.map(asyncGetImg);
+      commit('IS_LOADED_UPDATED', true);
     },
   },
 };

@@ -7,13 +7,14 @@
       +e.INPUT(type="text" v-model="search" @input="filteredFilms" placeholder="Введите  название").field
 
     .home__films
-      +b(v-if="!filmsLoaded").I.loader.fa.fa-spinner.fa-spin
-      +b(v-else="" v-for="item in films").film
-        +e.IMG(src="http://placehold.it/260x85?text=Placeholder").poster
+      +b(v-if="!isLoaded").I.loader.fa.fa-spinner.fa-spin
+      +b(v-else="" v-for="film in films").film
+        img(:src="film.poster").film__poster
         +e.description
-          +e.name {{ item.title }}
-          +e.producer {{ item.producer }}
-    .more-films(v-if="!hideButton && filmsLoaded" @click="nextPage") Показать еще
+          +e.name {{ film.title }}
+          +e.producer {{ film.producer }}
+    .more-films(v-if="!hideButton && isLoaded && !searchFailed" @click="nextPage") Показать еще
+    .failed-search(v-else-if="searchFailed") К сожалению, поиск по сайту не дал никаких результатов.
 </template>
 
 <script>
@@ -26,27 +27,34 @@
         size: 3,
         page: 1,
         hideButton: false,
-        filmsLoaded: false,
         films: false,
-        search: ''
+        search: '',
+        searchFailed: false,
       };
     },
+
     computed: {
       ...mapGetters({
-        filmsData: 'films/filmsData',
+        filmsData: 'films/allFilms',
+        isLoaded: 'films/isLoaded',
       }),
     },
-    async created() {
-      await this.$store.dispatch('films/getAllFilms');
-      this.films = this.basicCountFilms();
-      this.filmsLoaded = true;
+
+    watch: {
+      filmsData: function () {
+        this.films = this.basicCountFilms();
+      }
     },
-    mounted() {},
+
+    created() {
+      this.$store.dispatch('films/getAllFilms');
+    },
+
     methods: {
       basicCountFilms() {
-        const end = this.page * this.size;
-        return this.filmsData.slice(0, end);
+        return this.filmsData.slice(0, this.page * this.size);
       },
+
       nextPage() {
         this.page++;
         this.films = this.basicCountFilms();
@@ -55,10 +63,13 @@
           this.hideButton = true;
         }
       },
+
       filteredFilms() {
         this.films = this.filmsData.filter((e) => {
           return e.title.toLowerCase().indexOf(this.search.toLowerCase()) >= 0;
         });
+
+        (this.films.length === 0) ? this.searchFailed = true : this.searchFailed = false;
 
         if (this.search === '') {
           this.films = this.basicCountFilms();
