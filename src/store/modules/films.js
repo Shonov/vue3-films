@@ -35,7 +35,7 @@ export default {
       });
     },
     updateFilmPoster: async ({ commit, rootGetters }, films) => {
-      let defaultImage = 'http://placehold.it/260x85?text=Placeholder';
+      let defaultImage = 'https://placehold.it/260x85?text=Placeholder';
 
       const asyncGetImg = (film) => {
         rootGetters.HTTP.get('https://pixabay.com/api/', {
